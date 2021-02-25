@@ -1,0 +1,25 @@
+name: openeo_platform
+channels:
+  - conda
+  - conda-forge
+dependencies:
+  - python=3.7
+  - numpy
+  - ipyleaflet
+  - xarray
+  - rioxarray
+  - rasterio
+  - matplotlib
+  - traitlets
+  - shapely
+  - bqplot
+  - scipy
+  - notebook
+  - tqdm
+  - hvplot
+  - pip
+  - pip:
+    - netcdf4
+    - xarray_leaflet
+    - git+https://github.com/Open-EO/openeo-python-client.git
+    - graphviz
