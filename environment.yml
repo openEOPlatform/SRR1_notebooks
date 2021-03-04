@@ -1,7 +1,7 @@
 name: openeo_platform
 channels:
-  - conda
   - conda-forge
+  - pyviz
 dependencies:
   - python=3.7
   - numpy
@@ -17,9 +17,12 @@ dependencies:
   - notebook
   - tqdm
   - hvplot
+  - geoviews
+  - iris
+  - xesmf
   - pip
   - pip:
     - netcdf4
     - xarray_leaflet
-    - git+https://github.com/Open-EO/openeo-python-client.git
+    - openeo
     - graphviz
