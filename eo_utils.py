@@ -75,6 +75,13 @@ class openeoMap:
         self.map.add_control(layers_control)
         self.map.add_control(FullScreenControl())
         draw.on_draw(handle_draw)
+    
+    def getBbox(self):
+        if(len(self.bbox) == 0):
+            mapBox = self.map.bounds     
+            return [ mapBox[0][1],mapBox[0][0],mapBox[1][1],mapBox[1][0]]
+        else:
+            return self.bbox
            
 def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
     #Check the filetype: netcdf or geotiff
@@ -92,7 +99,6 @@ def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
     if bands is not None:
         rds4326 = rds4326.loc[dict(variable=bands)]
     opacity_slider = FloatSlider(description=name + ' opacity:', min=0, max=1, value=1)
-    print(rds4326)
     def set_opacity(change):
         l.opacity = change['new']
     if(len(rds4326.variable)==3):
@@ -109,7 +115,7 @@ def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
         rds4326 = rds4326.chunk((1000, 1000))
         rds4326 = rds4326.clip(clip[0],clip[1])
         cmap = plt.cm.get_cmap('Greys_r')
-        l = rds4326.leaflet.plot(inMap.map,colormap=cmap,colorbar_position=None)
+        l = rds4326.leaflet.plot(inMap.map,colormap=cmap)
         def set_opacity(change):
             l.opacity = change['new']
 
@@ -122,7 +128,7 @@ def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
         rds4326 = rds4326.chunk((1000, 1000))
         rds4326 = rds4326.clip(clip[0],clip[1])
         cmap = plt.cm.get_cmap('Greys_r')
-        l = rds4326.leaflet.plot(inMap.map,colormap=cmap,colorbar_position=None)
+        l = rds4326.leaflet.plot(inMap.map,colormap=cmap)
         def set_opacity(change):
             l.opacity = change['new']
 
