@@ -15,7 +15,7 @@ Alternatively, you can run them locally:
 1. Install Anaconda to manage virtual environments. You can follow the instructions [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html)
 2. Clone the repository and get into the repo folder:
  ```
-        git clone https://github.com/openEOPlatform/SRR1_notebooks.git`
+        git clone https://github.com/openEOPlatform/SRR1_notebooks.git
         cd SRR1_notebooks
 ```
 3. Create a new conda environment with the following command:
