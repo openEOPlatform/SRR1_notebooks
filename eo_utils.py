@@ -102,8 +102,9 @@ def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
     def set_opacity(change):
         l.opacity = change['new']
     if(len(rds4326.variable)==3):
+        rds4326 = rds4326.clip(clip[0],clip[1])/clip[1]*255
+        rds4326 = rds4326.rio.write_nodata(np.nan)
         rds4326 = rds4326.chunk((1000, 1000))
-        rds4326 = rds4326.clip(clip[0],clip[1])
         l = rds4326.leaflet.plot(inMap.map, rgb_dim='variable')
  
         opacity_slider.observe(set_opacity, names='value')
@@ -111,9 +112,9 @@ def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
         inMap.map.add_control(slider_control)
     elif(len(rds4326.variable)==1):
         rds4326 = rds4326[0]
+        rds4326 = rds4326.clip(clip[0],clip[1])
         rds4326 = rds4326.rio.write_nodata(np.nan)
         rds4326 = rds4326.chunk((1000, 1000))
-        rds4326 = rds4326.clip(clip[0],clip[1])
         cmap = plt.cm.get_cmap('Greys_r')
         l = rds4326.leaflet.plot(inMap.map,colormap=cmap)
         def set_opacity(change):
@@ -187,3 +188,19 @@ def addTimeseries(inMap,path,bands,new_plot):
         inMap.figure_widget = widget_control
         inMap.map.add_control(inMap.figure_widget)
         return
+    
+def tone_mapping(B04,B03,B02):
+    red = B04.values
+    green = B03.values
+    blue = B02.values
+    red = (red+1)/1733*255
+    green = (green+1)/1630*255
+    blue = (blue+1)/1347*255
+    red = np.clip(red,0,255).astype(np.uint8)
+    green = np.clip(green,0,255).astype(np.uint8)
+    blue = np.clip(blue,0,255).astype(np.uint8)
+    brg = np.zeros((red.shape[0],red.shape[1],3),dtype=np.uint8)
+    brg[:,:,0] = red
+    brg[:,:,1] = green
+    brg[:,:,2] = blue
+    return brg
