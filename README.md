@@ -36,7 +36,7 @@ Alternatively, you can run them locally:
 
 This user story covers the access of pre-computed ARD Sentinel 1 and 2 data over a large area. Ten MGRS tiles are accessed. It is shown that the grids align which makes analysis and further processing more convenient and precise since resampling steps are not required anymore. The CARD4L compliant metadata is presented. 
 
-## [User Story 2: Interactive timeseries analysis from pre-computed and on-demand ARD data](https://rawcdn.githack.com/openEOPlatform/SRR1_notebooks/dc7becf3f3493df5ac5b400e1988c3860f3cfd17/OpenEO%20Platform%20-%20User%20story%202.html)
+## [User Story 2: Interactive timeseries analysis from pre-computed and on-demand ARD data](https://rawcdn.githack.com/openEOPlatform/SRR1_notebooks/1178ef77a557a5054c609fcb7a599dbe22958232/OpenEO%20Platform%20-%20User%20story%202.html)
 
 This user story shows how to retrieve time series trajectories from pre-computed and on-demand ARD data. The focus lies on facilitating the access to time series data through interactive selection of pixels or small polygons in the client and receiving time series directly. This allows for quick access and comparison of time series of spectral bands or indices such as NDVI for optical data or sigma to gamma ratio for SAR backscatter. 
 
