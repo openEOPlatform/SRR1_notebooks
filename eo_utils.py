@@ -86,7 +86,15 @@ class openeoMap:
 def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
     #Check the filetype: netcdf or geotiff
     if path.split('.')[-1] == 'nc':
-        da = xr.open_dataset(path).drop('t').squeeze('t').to_array().astype(np.float32)
+        da = xr.open_dataset(path)
+        if 't' in da.dims:
+            da = da.drop('t').squeeze('t').to_array().astype(np.float32)
+        elif 'time' in da.dims:
+            da = da.drop('time').squeeze('time').to_array().astype(np.float32)
+        else:
+            da = da.to_array().astype(np.float32)
+        if 'variable' in da.dims and 'bands' in da.dims:
+            da = da.drop('variable').squeeze('variable').rename({'bands':'variable'})
     else:
         da = xr.open_rasterio(path)
         if 't' in da.dims:
@@ -103,7 +111,7 @@ def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
         l.opacity = change['new']
     if(len(rds4326.variable)==3):
         rds4326 = rds4326.clip(clip[0],clip[1])/clip[1]*255
-        rds4326 = rds4326.rio.write_nodata(np.nan)
+        rds4326 = rds4326.fillna(0).rio.write_nodata(0)
         rds4326 = rds4326.chunk((1000, 1000))
         l = rds4326.leaflet.plot(inMap.map, rgb_dim='variable')
  
@@ -113,7 +121,7 @@ def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
     elif(len(rds4326.variable)==1):
         rds4326 = rds4326[0]
         rds4326 = rds4326.clip(clip[0],clip[1])
-        rds4326 = rds4326.rio.write_nodata(np.nan)
+        rds4326 = rds4326.fillna(0).rio.write_nodata(0)
         rds4326 = rds4326.chunk((1000, 1000))
         cmap = plt.cm.get_cmap('Greys_r')
         l = rds4326.leaflet.plot(inMap.map,colormap=cmap)
@@ -125,7 +133,7 @@ def addLayer(inMap,path,name,clip=[0,0.8],bands=None):
         inMap.map.add_control(slider_control)
     else:
         rds4326 = rds4326[0]
-        rds4326 = rds4326.rio.write_nodata(np.nan)
+        rds4326 = rds4326.fillna(0).rio.write_nodata(0)
         rds4326 = rds4326.chunk((1000, 1000))
         rds4326 = rds4326.clip(clip[0],clip[1])
         cmap = plt.cm.get_cmap('Greys_r')
