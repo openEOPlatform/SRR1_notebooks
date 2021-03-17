@@ -20,6 +20,7 @@ dependencies:
   - geoviews
   - iris
   - xesmf
+  - h5netcdf
   - pip
   - pip:
     - netcdf4
