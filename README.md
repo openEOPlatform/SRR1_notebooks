@@ -11,7 +11,7 @@ This repository contains four Jupyter Notebooks showing interactive examples of 
 
 The easiest way to run the notebooks is by clicking the Binder button at the top. This will create an independent Python environment with all the required libraries, where you will be able to experiment the notebooks.
 
-Alternatively, you can run them locally:
+Alternatively, you can run them locally (please note: the Anaconda Python enviornment has been tested on Linux Ubuntu 18.04, on Windows it might not work due to different library versions):
 1. Install Anaconda to manage virtual environments. You can follow the instructions [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html)
 2. Clone the repository and get into the repo folder:
  ```
