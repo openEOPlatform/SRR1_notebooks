@@ -1,0 +1,42 @@
+---
+title: "ISDE12_2021: Introdtuction to openEO platform via the R-Client"
+author: "peterjames.zellner@eurac.edu"
+date: "01/07/2021"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Setup
+## Install the openEO R-Client
+The openEO R-Client is currently available on the openEO github repository.
+It can be installed via `remotes::install_github()`. To have the most up-to-date
+functionality select the develop version.
+
+```{r install, eval=FALSE}
+remotes::install_github(repo="Open-EO/openeo-r-client",ref="develop", dependencies=TRUE)
+packageVersion("openeo") # dev version needed
+```
+
+## Useful libraries
+Load the openEO R-Client library and some other useful libraries.
+```{r libs, message=FALSE, warning=FALSE}
+library(openeo)
+library(stars)
+library(sf)
+library(mapview)
+library(mapedit)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+```
+
+# Login
+
+
