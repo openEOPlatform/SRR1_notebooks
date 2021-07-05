@@ -1,4 +1,4 @@
-<img src="https://avatars.githubusercontent.com/u/74911464?s=200&v=4"
+<img src="./images/openEO-platform.png"
      alt="OpenEO Platform logo"
      />
 # OpenEO Platform

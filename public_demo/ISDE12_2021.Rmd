@@ -1,5 +1,5 @@
 ---
-title: "ISDE12_2021: Introdtuction to openEO platform via the R-Client"
+title: "ISDE12_2021: Introduction to openEO platform via the R-Client"
 author: "peterjames.zellner@eurac.edu"
 date: "01/07/2021"
 output:
@@ -9,23 +9,34 @@ output:
     toc_float: TRUE
 ---
 
+![](images/openEO-platform.png "openEO_platform")
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Setup
+
+## Before you start...
+
+... the getting started guide <https://openeo.org/documentation/1.0/r/>
+
+and the R-Client repo for logging issues and collaborating <https://github.com/Open-EO/openeo-r-client>
+
 ## Install the openEO R-Client
-The openEO R-Client is currently available on the openEO github repository.
-It can be installed via `remotes::install_github()`. To have the most up-to-date
-functionality select the develop version.
+
+The openEO R-Client is currently available on the [openEO github repository](https://github.com/Open-EO/openeo-r-client). It can be installed via `remotes::install_github()`. To have the most up-to-date functionality select the develop version.
 
 ```{r install, eval=FALSE}
-remotes::install_github(repo="Open-EO/openeo-r-client",ref="develop", dependencies=TRUE)
-packageVersion("openeo") # dev version needed
+remotes::install_github(repo="Open-EO/openeo-r-client",
+                        ref="develop", dependencies=TRUE)
+packageVersion("openeo")
 ```
 
 ## Useful libraries
+
 Load the openEO R-Client library and some other useful libraries.
+
 ```{r libs, message=FALSE, warning=FALSE}
 library(openeo)
 library(stars)
@@ -39,4 +50,255 @@ library(plotly)
 
 # Login
 
+First you can connect to the backend to explore the available collections (as seen in the Connections Pane) and the processes.
 
+```{r connect}
+host = "https://openeo.vito.be"
+con = openeo::connect(host)
+```
+
+To do processing you need to login. Either via OIDC (currently unavailable for the R-Client).
+
+```{r login_oidc, eval=FALSE}
+prov_ls = list_oidc_providers()
+prov = prov_ls$egi
+openeo::login(login_type = "oidc", 
+              provider = prov, 
+              config = list(client_id = prov$id, secret = NA))
+```
+
+Or for now with the basic login. Providing user and password.
+
+```{r login_basic}
+openeo::login(user = "peter", password = "peter123", login_type = "basic")
+```
+
+# Discover the backend
+
+Once your connected you can discover processes and collections. This gives you valuable metadata on collections and information on how to use the processes.
+
+## Discover collections
+
+The collections appear in the Connections pane of R-Studio. You can also list them via `list_collections()` and retrieve some first info.
+
+```{r list_collections}
+names(openeo::list_collections()) %>% as.data.frame()
+```
+
+To get more details you can use the `collection_viewer()` which opens the description of the collection in the Viewer pane
+
+```{r collection_viewer, eval=FALSE}
+collection_viewer("SENTINEL2_L1C_SENTINELHUB")
+```
+
+To use the collection metadata for further coding you can use `decribe_collection()`.
+
+```{r describe_collection}
+coll_meta = openeo::describe_collection("SENTINEL2_L1C_SENTINELHUB")
+names(coll_meta)
+coll_meta$extent$spatial # you could use this to draw a bbox of the collection
+```
+
+## Discover processes
+
+To get an overview of the available processes use `list_processes()`
+
+```{r list_processes}
+names(list_processes()) %>% as.data.frame()
+```
+
+To get detailed information about a process you can again use the `process_viewer()`
+
+```{r process_viewer}
+process_viewer("atmospheric_correction")
+```
+
+Or `describe_process()`
+
+```{r describe_process}
+describe_process("atmospheric_correction")
+```
+
+# Calculate NDVI: From Sentinel 2 data atmospherically corrected on the fly
+
+-   Load Sentinel 2 L1C data
+-   Define the area of interest, temporal range and bands
+-   Atmospherically correct the values on the fly
+-   Calculate the NDVI
+-   Download the result
+
+## Definitions
+
+First define an area of interest interactively (either a point or area)
+
+```{r aoi_process}
+# this is interactive
+pnts = mapedit::drawFeatures()
+
+# # this is static for points
+# pnts = data.frame(x = 11.36725, y = 46.47889)
+# # this is static for areas
+# pnts = c(xmin = 11.36278, ymin = 46.47338, xmax = 11.39214, ymax = 46.48308)
+# pnts = st_bbox(pnts, crs = st_crs(4326))
+# mapview(pnts)
+# pnts = st_as_sf(pnts, coords = c("x", "y"), crs = st_crs(4326))
+
+mapview(pnts)
+
+bbox = st_bbox(pnts)
+bbox = list(west = bbox[[1]],
+            east = bbox[[3]],
+            south = bbox[[2]],
+            north = bbox[[4]])
+```
+
+Define the collection (data set), time range and bands.
+
+```{r defs_process}
+collection = "SENTINEL2_L1C_SENTINELHUB"
+time_range = list("2018-04-01T00:00:00.000Z", 
+                  "2018-10-01T00:00:00.000Z")
+bands = c("B04", "B08", "CLP", "B09", "B8A", "B11",
+          "sunAzimuthAngles", "sunZenithAngles", "viewAzimuthMean", "viewZenithMean")
+#bands = c("B04", "B08")
+```
+
+## Build the processing chain
+
+Start building the processing chain. First, load the available processes.
+
+```{r load_processes, eval=FALSE}
+p = processes()
+```
+
+Load the collection.
+
+```{r load_data, eval=FALSE}
+data = p$load_collection(id = collection, 
+                         spatial_extent = bbox,
+                         temporal_extent = time_range, 
+                         bands = bands)
+```
+
+Atmospherical Correction
+
+```{r atmopspherical_correction, eval=FALSE}
+boa_corr = p$atmospheric_correction(data = data, method = "smac") # or use "iCor"
+```
+
+Calculate NDVI. Reduce the "bands" dimension with the well known NDVI formula.
+
+```{r calc_ndvi, eval=FALSE}
+ndvi_calc = p$reduce_dimension(data = boa_corr, 
+                               dimension = "bands", 
+                               reducer = function(data, context) {
+                                 red = data[1]
+                                 nir = data[2]
+                                 (nir-red)/(nir+red)})
+
+```
+
+Aggregate to temporal periods
+
+```{r temporal_period}
+ndvi_mnth = p$aggregate_temporal_period(data = ndvi_calc, 
+                                        period = "month", 
+                                        dimension = "t", 
+                                        reducer = function(data, context){
+                                          p$median(data)})
+
+# process_viewer("aggregate_temporal_period")
+# process_viewer("aggregate_temporal")
+
+# intervals = list("[ '2018-04-01', '2018-05-01' ]", "[ '2018-05-01', '2018-06-01' ]", 
+#                  "[ '2018-06-01', '2018-07-01' ]", "[ '2018-07-01', '2018-08-01' ]", 
+#                  "[ '2018-08-01', '2018-09-01' ]", "[ '2018-09-01', '2018-10-01' ]")
+# intervals = list(list('2018-04-01', '2018-05-01'), "[ '2018-05-01', '2018-06-01' ]", 
+#                  "[ '2018-06-01', '2018-07-01' ]", "[ '2018-07-01', '2018-08-01' ]", 
+#                  "[ '2018-08-01', '2018-09-01' ]", "[ '2018-09-01', '2018-10-01' ]")
+# labels = list("2018-04-01", "2018-05-01", 
+#               "2018-06-01", "2018-07-01", 
+#               "2018-08-01", "2018-09-01")
+# ndvi_mnth = p$aggregate_temporal(data = ndvi_calc, 
+#                                  intervals = intervals, 
+#                                  reducer = function(data, contex){p$median(data)}, 
+#                                  labels = labels, 
+#                                  dimension = "t")
+```
+
+Save the result.
+
+```{r save_result, eval=FALSE}
+result = p$save_result(data = ndvi_mnth, format="NetCDF")
+```
+
+No processing has happened so far. Only the workflow/process graph has been defined.
+
+```{r as_graph, eval=FALSE}
+# paste process graph to this
+graph = as(result, "Graph")
+# print process graph as JSON
+#graph_info = create_user_process(result, 
+#                                 id=result$id, 
+#                                 submit = FALSE)
+#print(jsonlite::toJSON(graph_info, pretty = TRUE))
+```
+
+## Compute the result
+
+synchronous call (result is computed directly)
+
+```{r compute_result, eval=FALSE}
+out_name =  "/home/pzellner@eurac.edu/git_projects/SRR1_notebooks/public_demo/data/r_ndvi_mnth_int.nc"
+a = Sys.time()
+compute_result(result,
+               format = "netCDF",
+               output_file = out_name, 
+               con = con)
+b = Sys.time()-a
+b
+```
+
+## Load the result
+
+```{r load_result}
+ndvi = read_ncdf(out_name)
+st_crs(ndvi) = st_crs(32632)
+#system(paste0("gdalinfo ", out_name))
+
+stars::st_get_dimension_values(ndvi, "t")
+```
+
+plot a time slice
+
+```{r plot_area}
+
+mapview(ndvi %>% slice("t", 1), label = TRUE, query.type = "mousemove") + 
+  mapview(ndvi %>% slice("t", 2)) + 
+  mapview(ndvi %>% slice("t", 3))
+
+```
+
+plot a pixel timeseries
+
+```{r plot_pixel}
+# define a point
+pixel = mapedit::drawFeatures()
+mapview(pixel)
+pixel = st_transform(x = pixel, crs = st_crs(ndvi))
+
+# subset to point
+ndvi_ts = ndvi[pixel]
+
+# generate a data frame from the values and dates
+ndvi_ts_df = data.frame(value = ndvi_ts %>% pull() %>% c(), 
+                        dates = as.Date(st_get_dimension_values(ndvi_ts, "t")))
+
+# plot the timeseries
+plot_ts = ggplot(ndvi_ts_df, aes(x = dates, y = value)) + 
+  geom_line() + 
+  geom_point()
+plot_ts_plotly = plotly::ggplotly(plot_ts)
+plot_ts_plotly
+
+```
