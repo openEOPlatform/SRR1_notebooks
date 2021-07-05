@@ -1,5 +1,5 @@
 ---
-title: "ISDE12_2021: Introdtuction to openEO platform via the R-Client"
+title: "ISDE12_2021: Introduction to openEO platform via the R-Client"
 author: "peterjames.zellner@eurac.edu"
 date: "01/07/2021"
 output:
