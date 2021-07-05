@@ -131,14 +131,15 @@ First define an area of interest interactively (either a point or area)
 
 ```{r aoi_process}
 # this is interactive
-pnts = mapedit::drawFeatures()
+# pnts = mapedit::drawFeatures()
 
 # # this is static for points
 # pnts = data.frame(x = 13.09884, y = 47.82496)
-# # this is static for areas
-# pnts = c(xmin = 13.09741 ymin = 47.82417, xmax = 13.10026, ymax = 47.82565)
-# pnts = st_bbox(pnts, crs = st_crs(4326))
 # pnts = st_as_sf(pnts, coords = c("x", "y"), crs = st_crs(4326))
+
+# this is static for areas
+pnts = c(xmin = 13.09741, ymin = 47.82417, xmax = 13.10026, ymax = 47.82565)
+pnts = st_bbox(pnts, crs = st_crs(4326))
 
 mapview(pnts)
 
@@ -198,7 +199,7 @@ ndvi_calc = p$reduce_dimension(data = boa_corr,
 
 Aggregate to temporal periods
 
-```{r temporal_period}
+```{r temporal_period, eval=FALSE}
 # process_viewer("aggregate_temporal")
 
 intervals = list(c('2018-01-02', '2018-02-01'),
@@ -238,8 +239,11 @@ process_graph = as(result, "Graph")
 
 synchronous call (result is computed directly)
 
-```{r compute_result, eval=FALSE}
+```{r out_name}
 out_name =  "/home/pzellner@eurac.edu/git_projects/SRR1_notebooks/public_demo/data/r_ndvi_mnth_int.nc"
+```
+
+```{r compute_result, eval=FALSE}
 a = Sys.time()
 compute_result(result,
                format = "netCDF",
@@ -249,9 +253,11 @@ b = Sys.time()-a
 b
 ```
 
+
 ## Load the result
 
 ```{r load_result}
+# load the data into r
 ndvi = read_ncdf(out_name)
 
 # check which projection your data has and assign it
@@ -262,7 +268,7 @@ st_crs(ndvi) = st_crs(32633)
 stars::st_get_dimension_values(ndvi, "t")
 ```
 
-plot some time slices
+plot some time slices (select and deselect in the viewer)
 
 ```{r plot_area}
 brks = seq(-0, 1, 0.1)
@@ -278,17 +284,16 @@ get a point for plotting a pixel timeseries
 
 ```{r get_pixel}
 # define a point
-pixel = mapedit::drawFeatures()
+# pixel = mapedit::drawFeatures()
 
 # static assignment
-# pixel = data.frame(x = 13.09884, y = 47.82496)
-# pixel = st_bbox(pnts, crs = st_crs(4326))
-# pixel = st_as_sf(pnts, coords = c("x", "y"), crs = st_crs(4326))
+pixel = data.frame(x = 13.09884, y = 47.82496)
+pixel = st_as_sf(pixel, coords = c("x", "y"), crs = st_crs(4326))
 
 mapview(pixel) + mapview(st_bbox(ndvi))
 ```
 
-plot a pixel time series
+subset to a point and plot a pixel time series
 
 ```{r plot_}
 # subset to point
