@@ -1,7 +1,7 @@
 ---
 title: "ISDE12_2021: Introdtuction to openEO platform via the R-Client"
 author: "peterjames.zellner@eurac.edu"
-date: "01/07/2021"
+date: "05/07/2021"
 output:
   html_document:
     toc: true
@@ -19,9 +19,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Before you start...
 
-... the getting started guide <https://openeo.org/documentation/1.0/r/>
-
-and the R-Client repo for logging issues and collaborating <https://github.com/Open-EO/openeo-r-client>
+-   the getting started guide <https://openeo.org/documentation/1.0/r/>
+-   and the R-Client repo for logging issues and collaborating <https://github.com/Open-EO/openeo-r-client>
 
 ## Install the openEO R-Client
 
@@ -87,7 +86,7 @@ names(openeo::list_collections()) %>% as.data.frame()
 
 To get more details you can use the `collection_viewer()` which opens the description of the collection in the Viewer pane
 
-```{r collection_viewer, eval=FALSE}
+```{r collection_viewer}
 collection_viewer("SENTINEL2_L1C_SENTINELHUB")
 ```
 
@@ -95,7 +94,6 @@ To use the collection metadata for further coding you can use `decribe_collectio
 
 ```{r describe_collection}
 coll_meta = openeo::describe_collection("SENTINEL2_L1C_SENTINELHUB")
-names(coll_meta)
 coll_meta$extent$spatial # you could use this to draw a bbox of the collection
 ```
 
@@ -136,11 +134,10 @@ First define an area of interest interactively (either a point or area)
 pnts = mapedit::drawFeatures()
 
 # # this is static for points
-# pnts = data.frame(x = 11.36725, y = 46.47889)
+# pnts = data.frame(x = 13.09884, y = 47.82496)
 # # this is static for areas
-# pnts = c(xmin = 11.36278, ymin = 46.47338, xmax = 11.39214, ymax = 46.48308)
+# pnts = c(xmin = 13.09741 ymin = 47.82417, xmax = 13.10026, ymax = 47.82565)
 # pnts = st_bbox(pnts, crs = st_crs(4326))
-# mapview(pnts)
 # pnts = st_as_sf(pnts, coords = c("x", "y"), crs = st_crs(4326))
 
 mapview(pnts)
@@ -156,8 +153,8 @@ Define the collection (data set), time range and bands.
 
 ```{r defs_process}
 collection = "SENTINEL2_L1C_SENTINELHUB"
-time_range = list("2018-04-01T00:00:00.000Z", 
-                  "2018-10-01T00:00:00.000Z")
+time_range = list("2018-01-01T00:00:00.000Z", 
+                  "2018-12-31T00:00:00.000Z")
 bands = c("B04", "B08", "CLP", "B09", "B8A", "B11",
           "sunAzimuthAngles", "sunZenithAngles", "viewAzimuthMean", "viewZenithMean")
 #bands = c("B04", "B08")
@@ -169,6 +166,7 @@ Start building the processing chain. First, load the available processes.
 
 ```{r load_processes, eval=FALSE}
 p = processes()
+# names(p)
 ```
 
 Load the collection.
@@ -201,29 +199,27 @@ ndvi_calc = p$reduce_dimension(data = boa_corr,
 Aggregate to temporal periods
 
 ```{r temporal_period}
-ndvi_mnth = p$aggregate_temporal_period(data = ndvi_calc, 
-                                        period = "month", 
-                                        dimension = "t", 
-                                        reducer = function(data, context){
-                                          p$median(data)})
-
-# process_viewer("aggregate_temporal_period")
 # process_viewer("aggregate_temporal")
 
-# intervals = list("[ '2018-04-01', '2018-05-01' ]", "[ '2018-05-01', '2018-06-01' ]", 
-#                  "[ '2018-06-01', '2018-07-01' ]", "[ '2018-07-01', '2018-08-01' ]", 
-#                  "[ '2018-08-01', '2018-09-01' ]", "[ '2018-09-01', '2018-10-01' ]")
-# intervals = list(list('2018-04-01', '2018-05-01'), "[ '2018-05-01', '2018-06-01' ]", 
-#                  "[ '2018-06-01', '2018-07-01' ]", "[ '2018-07-01', '2018-08-01' ]", 
-#                  "[ '2018-08-01', '2018-09-01' ]", "[ '2018-09-01', '2018-10-01' ]")
-# labels = list("2018-04-01", "2018-05-01", 
-#               "2018-06-01", "2018-07-01", 
-#               "2018-08-01", "2018-09-01")
-# ndvi_mnth = p$aggregate_temporal(data = ndvi_calc, 
-#                                  intervals = intervals, 
-#                                  reducer = function(data, contex){p$median(data)}, 
-#                                  labels = labels, 
-#                                  dimension = "t")
+intervals = list(c('2018-01-02', '2018-02-01'),
+                 c('2018-02-01', '2018-03-01'),
+                 c('2018-03-01', '2018-04-01'),
+                 c('2018-04-01', '2018-05-01'),
+                 c('2018-05-01', '2018-06-01'), 
+                 c('2018-06-01', '2018-07-01'), 
+                 c('2018-07-01', '2018-08-01'),
+                 c('2018-08-01', '2018-09-01'),
+                 c('2018-09-01', '2018-10-01'), 
+                 c('2018-10-01', '2018-11-01'),
+                 c('2018-11-01', '2018-12-30'))
+
+labels = lapply(intervals, function(x){x[[1]]}) %>% unlist()
+
+ndvi_mnth = p$aggregate_temporal(data = ndvi_calc,
+                                 intervals = intervals,
+                                 reducer = function(data, context){p$median(data)},
+                                 labels = labels,
+                                 dimension = "t")
 ```
 
 Save the result.
@@ -235,13 +231,7 @@ result = p$save_result(data = ndvi_mnth, format="NetCDF")
 No processing has happened so far. Only the workflow/process graph has been defined.
 
 ```{r as_graph, eval=FALSE}
-# paste process graph to this
-graph = as(result, "Graph")
-# print process graph as JSON
-#graph_info = create_user_process(result, 
-#                                 id=result$id, 
-#                                 submit = FALSE)
-#print(jsonlite::toJSON(graph_info, pretty = TRUE))
+process_graph = as(result, "Graph")
 ```
 
 ## Compute the result
@@ -263,31 +253,46 @@ b
 
 ```{r load_result}
 ndvi = read_ncdf(out_name)
-st_crs(ndvi) = st_crs(32632)
-#system(paste0("gdalinfo ", out_name))
 
+# check which projection your data has and assign it
+#system(paste0("gdalinfo ", out_name))
+st_crs(ndvi) = st_crs(32633)
+
+# look at the time dimension
 stars::st_get_dimension_values(ndvi, "t")
 ```
 
-plot a time slice
+plot some time slices
 
 ```{r plot_area}
-
-mapview(ndvi %>% slice("t", 1), label = TRUE, query.type = "mousemove") + 
-  mapview(ndvi %>% slice("t", 2)) + 
-  mapview(ndvi %>% slice("t", 3))
-
+brks = seq(-0, 1, 0.1)
+mapview(ndvi %>% slice("t", 1), at = brks) + 
+  mapview(ndvi %>% slice("t", 3), at = brks) + 
+  mapview(ndvi %>% slice("t", 5), at = brks) +
+  mapview(ndvi %>% slice("t", 7), at = brks) +
+  mapview(ndvi %>% slice("t", 9), at = brks) +
+  mapview(ndvi %>% slice("t", 11), at = brks)
 ```
 
-plot a pixel timeseries
+get a point for plotting a pixel timeseries
 
-```{r plot_pixel}
+```{r get_pixel}
 # define a point
 pixel = mapedit::drawFeatures()
-mapview(pixel)
-pixel = st_transform(x = pixel, crs = st_crs(ndvi))
 
+# static assignment
+# pixel = data.frame(x = 13.09884, y = 47.82496)
+# pixel = st_bbox(pnts, crs = st_crs(4326))
+# pixel = st_as_sf(pnts, coords = c("x", "y"), crs = st_crs(4326))
+
+mapview(pixel) + mapview(st_bbox(ndvi))
+```
+
+plot a pixel time series
+
+```{r plot_}
 # subset to point
+pixel = st_transform(x = pixel, crs = st_crs(ndvi))
 ndvi_ts = ndvi[pixel]
 
 # generate a data frame from the values and dates
