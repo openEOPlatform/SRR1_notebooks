@@ -231,8 +231,9 @@ result = p$save_result(data = ndvi_mnth, format="NetCDF")
 
 No processing has happened so far. Only the workflow/process graph has been defined.
 
-```{r as_graph, eval=FALSE}
-process_graph = as(result, "Graph")
+```{r vis_graph, eval=FALSE}
+graph_info = create_user_process(result, id = "test", submit = FALSE)
+print(jsonlite::toJSON(graph_info, pretty = TRUE, auto_unbox = TRUE))
 ```
 
 ## Compute the result
@@ -252,7 +253,6 @@ compute_result(result,
 b = Sys.time()-a
 b
 ```
-
 
 ## Load the result
 
