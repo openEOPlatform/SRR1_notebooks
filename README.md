@@ -32,7 +32,7 @@ Alternatively, you can run them locally (please note: the Anaconda Python envior
 ```
 6. This should open up a new window in your default web browser, where you can select the notebook you prefer.
 
-## [User Story 1: Access of pre-computed ARD data for Sentinel 1 and 2 over a large area](https://rawcdn.githack.com/openEOPlatform/SRR1_notebooks/15cb3d4dc128ec35980b644a06ba52a934486223/OpenEO%20Platform%20-%20User%20story%201.html)
+## [User Story 1: Access of pre-computed ARD data for Sentinel 1 and 2 over a large area](https://rawcdn.githack.com/openEOPlatform/SRR1_notebooks/b282c8046d27fa188c26f2fe9b354f9e05375ccd/OpenEO%20Platform%20-%20User%20story%201.html)
 
 This user story covers the access of pre-computed ARD Sentinel 1 and 2 data over a large area. Ten MGRS tiles are accessed. It is shown that the grids align which makes analysis and further processing more convenient and precise since resampling steps are not required anymore. The CARD4L compliant metadata is presented. 
 
