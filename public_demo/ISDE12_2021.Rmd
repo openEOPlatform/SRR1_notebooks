@@ -52,24 +52,23 @@ library(plotly)
 First you can connect to the backend to explore the available collections (as seen in the Connections Pane) and the processes.
 
 ```{r connect}
-host = "https://openeo.vito.be"
+host = "https://openeo.cloud"
 con = openeo::connect(host)
 ```
 
-To do processing you need to login. Either via OIDC (currently unavailable for the R-Client).
+In the code snippets above we did not need to log in since we just queried publicly available back-end information. However, to run non-trivial processing queries one has to authenticate so that permissions, resource usage, etc. can be managed properly.
+
+To handle authentication, openEO leverages [OpenID Connect (OIDC)](OpenID Connect (OIDC)). It offers some interesting features (e.g. a user can securely reuse an existing account), but is a fairly complex topic, discussed in more depth in the [general authentication documentation for openEO Platform](general authentication documentation for openEO Platform).
+
+Unfortunately, you need to request a Client ID and a Client Secret for this from the openEO Platform support due to the R client not being officially supported by openEO Platform! Once you have received the Client ID and a Client Secret, you can can continue with the instructions below.
 
 ```{r login_oidc, eval=FALSE}
-prov_ls = list_oidc_providers()
-prov = prov_ls$egi
+client_id = "request at openeo platform support" 
+secret = "request at openeo platform support" 
 openeo::login(login_type = "oidc", 
-              provider = prov, 
-              config = list(client_id = prov$id, secret = NA))
-```
-
-Or for now with the basic login. Providing user and password.
-
-```{r login_basic}
-openeo::login(user = "peter", password = "peter123", login_type = "basic")
+              provider = "egi", 
+              config = list(client_id = client_id, secret = secret))
+describe_account()
 ```
 
 # Discover the backend
@@ -176,7 +175,9 @@ Load the collection.
 data = p$load_collection(id = collection, 
                          spatial_extent = bbox,
                          temporal_extent = time_range, 
-                         bands = bands)
+                         bands = bands) %>% 
+  p$atmospheric_correction(method = "smac")
+  
 ```
 
 Atmospherical Correction
