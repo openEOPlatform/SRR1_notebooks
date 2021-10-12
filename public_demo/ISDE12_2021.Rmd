@@ -19,8 +19,21 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Before you start...
 
--   the getting started guide <https://openeo.org/documentation/1.0/r/>
+-   the openEO getting started guide <https://openeo.org/documentation/1.0/r/>
+-   the openEO platform getting started guide <https://docs.openeo.cloud/getting-started/r/>
 -   and the R-Client repo for logging issues and collaborating <https://github.com/Open-EO/openeo-r-client>
+
+## Topics
+
+-   Installation
+
+-   Authentication and Log-In
+
+-   Exploring the Backend (widgets, using metadata)
+
+-   Example Process - Usability R (tidyverse, geospatial)
+
+-   Outlook User Defined Funtcions R-UDF
 
 ## Install the openEO R-Client
 
@@ -58,13 +71,14 @@ con = openeo::connect(host)
 
 In the code snippets above we did not need to log in since we just queried publicly available back-end information. However, to run non-trivial processing queries one has to authenticate so that permissions, resource usage, etc. can be managed properly.
 
-To handle authentication, openEO leverages [OpenID Connect (OIDC)](OpenID Connect (OIDC)). It offers some interesting features (e.g. a user can securely reuse an existing account), but is a fairly complex topic, discussed in more depth in the [general authentication documentation for openEO Platform](general authentication documentation for openEO Platform).
+To handle authentication, openEO leverages [OpenID Connect (OIDC)](OpenID%20Connect%20(OIDC)). It offers some interesting features (e.g. a user can securely reuse an existing account), but is a fairly complex topic, discussed in more depth in the [general authentication documentation for openEO Platform](general%20authentication%20documentation%20for%20openEO%20Platform).
 
 Unfortunately, you need to request a Client ID and a Client Secret for this from the openEO Platform support due to the R client not being officially supported by openEO Platform! Once you have received the Client ID and a Client Secret, you can can continue with the instructions below.
 
 ```{r login_oidc, eval=FALSE}
-client_id = "request at openeo platform support" 
-secret = "request at openeo platform support" 
+creds_rclient = read.csv2("/home/pzellner@eurac.edu/pwd/openeo_platform_rclient.pwd")
+client_id = creds_rclient$client_id "request at openeo platform support" 
+secret = creds_rclient$secret "request at openeo platform support" 
 openeo::login(login_type = "oidc", 
               provider = "egi", 
               config = list(client_id = client_id, secret = secret))
