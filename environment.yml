@@ -23,7 +23,6 @@ dependencies:
   - h5netcdf
   - pip
   - pip:
+    - openeo
     - netcdf4
     - xarray_leaflet
-    - git+https://github.com/Open-EO/openeo-python-client.git
-    - graphviz
